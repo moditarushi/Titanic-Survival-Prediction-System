@@ -1,57 +1,15 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix
+import joblib
 import seaborn as sns
-from sklearn.tree import DecisionTreeClassifier
 import matplotlib.pyplot as plt
 
 # Load Dataset
-df = pd.read_csv("titanic.csv")
-
-# Data Preprocessing
-df["Age"] = df["Age"].fillna(df["Age"].mean())
-df["Embarked"] = df["Embarked"].fillna(df["Embarked"].mode()[0])
-
-# Convert sex to numeric
-df["Sex"] = df["Sex"].map({"male": 0, "female": 1})
-
-# Features and Targets
-X = df[["Pclass", "Sex", "Age", "Fare"]]
-y = df["Survived"]
-
-# Models
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,random_state = 42)
-model = LogisticRegression()
-model.fit(X_train, y_train)
-
-model1 = LogisticRegression()
-model2 = DecisionTreeClassifier()
-
-model1.fit(X_train, y_train)
-model2.fit(X_train, y_train)
-
-acc1 = model1.score(X_test, y_test)
-acc2 = model2.score(X_test, y_test)
-
-accuracy = model.score(X_test, y_test)
+model = joblib.load("titanic_model.pkl")
 
 # UI
 st.markdown("<h1 style='text-align:center;'>🚢 Titanic Survival Predictor</h1>", unsafe_allow_html=True)
-
-st.write(f"### Model Accuracy: {accuracy*100:.2f}%")
-
-# Model comparison
-st.subheader("📊 Model Comparison")
-st.write(f"Logistic Regression: {acc1*100:.2f}%")
-st.write(f"Decision Tree: {acc2*100:.2f}%")
-
-st.bar_chart({
-    "Logistic Regression": acc1,
-    "Decision Tree": acc2
-})
 
 # Inputs
 pclass = st.selectbox("Passenger Class", [1, 2, 3])
@@ -111,34 +69,6 @@ if st.button("Predict Survival"):
 
     st.pyplot(fig)
 
-    # Confusion Matrix
-
-    st.subheader("📉 Confusion Matrix")
-
-    cm = confusion_matrix(y_test, model.predict(X_test))
-
-    fig2, ax2 = plt.subplots()
-    sns.heatmap(cm, annot=True, fmt="d", ax=ax2)
-
-    ax2.set_title("Confusion Matrix")
-    ax2.set_xlabel("Predicted")
-    ax2.set_ylabel("Actual")
-
-    st.pyplot(fig2)
-
-    # Feature Importance
-    st.subheader("📊 Feature Importance")
-
-    importance = model.coef_[0]
-    features = X.columns
-
-    fig3, ax3 = plt.subplots(figsize =(6,4))
-    ax3.barh(features, importance, color = "skyblue")
-    ax3.set_title("Feature Importance")
-
-    st.pyplot(fig3)
-    
-
     # Insights
     st.subheader("📌 Insights")
 
@@ -157,4 +87,4 @@ if st.button("Predict Survival"):
     - Features: Pclass, Sex, Age, Fare  
     - Dataset: Titanic  
     - Accuracy: {:.2f}%
-    """.format(accuracy*100))
+    """)
